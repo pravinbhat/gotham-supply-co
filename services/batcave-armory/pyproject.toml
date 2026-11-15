@@ -1,0 +1,28 @@
+[project]
+name = "batcave-armory"
+version = "0.1.0"
+description = "Gotham Supply Co. (fan project) - inventory & fulfillment service"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.163.0",
+    "temporalio>=1.25",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+batcave-armory = "batcave_armory.main:main"
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
