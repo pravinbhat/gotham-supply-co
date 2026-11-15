@@ -1,6 +1,6 @@
 module github.com/pravinbhat/gotham-supply-co/services/batcave-order-ops
 
-go 1.27.4
+go 1.26.0
 
 require (
 	go.temporal.io/api v1.64.3

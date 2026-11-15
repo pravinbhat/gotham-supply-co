@@ -27,7 +27,11 @@ start() {
       (cd services/batcave-order-ops && go build -o bin/order-ops ./cmd/server)
       DB_PATH="$ROOT/data/order-ops.db" PORT=$port nohup services/batcave-order-ops/bin/order-ops >".logs/$svc.log" 2>&1 & ;;
     wayne-billing)
-      [[ -f services/wayne-billing/target/wayne-billing.jar ]] || (cd services/wayne-billing && mvn -q -DskipTests package)
+      local jar=services/wayne-billing/target/wayne-billing.jar
+      # Rebuild only when the jar is missing or any source/pom is newer (mvn package is slow).
+      if [[ ! -f $jar || -n "$(find services/wayne-billing/src services/wayne-billing/pom.xml -newer "$jar" -print -quit)" ]]; then
+        echo "  building wayne-billing..."; (cd services/wayne-billing && mvn -q -DskipTests package)
+      fi
       DB_PATH="$ROOT/data/billing.db" PORT=$port nohup java -jar services/wayne-billing/target/wayne-billing.jar >".logs/$svc.log" 2>&1 & ;;
     batcave-armory)
       (cd services/batcave-armory && uv sync -q)
