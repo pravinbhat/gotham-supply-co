@@ -1,5 +1,7 @@
 $kind: http-request
-description: "201/202 body: {order_id, workflow_id, run_id, status}. The test script auto-saves order_id for the requests below."
+description: |-
+  Returns 202 with {order_id, workflow_id, run_id, status}. The order then runs asynchronously as OrderWorkflow; follow it with Get Order.
+  The script saves order_id and clears the IDs captured from any previous order.
 url: "{{order_url}}/orders"
 method: POST
 headers:
@@ -26,7 +28,9 @@ scripts:
       if (pm.response.code === 202) {
           const body = pm.response.json();
           pm.collectionVariables.set('order_id', body.order_id);
-          pm.collectionVariables.set('idempotency_key', 'order-' + body.order_id);
+          // Clear IDs from any previous order; Get Order fills them in for this one.
+          ['reservation_id', 'charge_id', 'total_cents', 'idempotency_key']
+              .forEach((k) => pm.collectionVariables.set(k, ''));
           console.log('Saved order_id =', body.order_id);
       }
     language: text/javascript

@@ -130,6 +130,13 @@ make down     # stop everything
 
 ## Try it by hand
 
+Prefer a GUI? There's a Postman collection for all three services. Its scripts chain the IDs from one request to the next, and its description walks through the order to run them in. It comes in two forms:
+
+| File | What it's for |
+|---|---|
+| [`postman/`](postman/collections) | **The source.** Postman's Native Git format, edited in the Postman app. Changes show up as readable YAML diffs. |
+| [`docs/gotham-supply-co.postman_collection.json`](docs/gotham-supply-co.postman_collection.json) | **A generated snapshot** in the standard v2.1 format, for importing into any Postman install or running with `newman`. Don't edit it by hand: after changing `postman/`, re-export from Postman (right-click the collection → Export → Collection v2.1) over this file. |
+
 ```bash
 # Browse the catalog and stock
 curl -s localhost:8083/products  | jq
@@ -239,7 +246,10 @@ Things that bit us along the way. They're worth knowing before a customer hits t
 .
 ├── Makefile                  make up / down / status / smoke / build / clean
 ├── .env.example              Temporal connection template (copy to .env)
-├── docs/ROADMAP.md           phased plan and the Temporal concepts in each phase
+├── docs/
+│   ├── ROADMAP.md            phased plan and the Temporal concepts in each phase
+│   └── gotham-supply-co.postman_collection.json   generated snapshot of postman/ (re-export; don't edit)
+├── postman/                  Postman collection, the source (Postman Native Git YAML)
 ├── scripts/
 │   ├── dev.sh                start / stop / status / logs for all services
 │   └── smoke.sh              end-to-end happy path

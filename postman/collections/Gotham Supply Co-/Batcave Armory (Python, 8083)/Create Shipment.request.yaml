@@ -1,5 +1,7 @@
 $kind: http-request
-description: Starts FulfillmentWorkflow (pick_and_pack -> create_shipping_label) and waits up to 20s for the result.
+description: |-
+  Replays the saga's fulfillment. For an order that has already shipped, it returns the existing shipment with the same tracking number.
+  For an order with no shipment, it starts FulfillmentWorkflow (pick_and_pack, then create_shipping_label) and waits up to 20s for the result.
 url: "{{armory_url}}/shipments"
 method: POST
 headers:

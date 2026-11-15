@@ -1,0 +1,6 @@
+$kind: http-request
+description: |-
+  Uses the charge_id saved by Get Order. If charge_id is empty, the URL becomes /charges/ and billing returns the list of all charges instead.
+url: "{{billing_url}}/charges/{{charge_id}}"
+method: GET
+order: 4000

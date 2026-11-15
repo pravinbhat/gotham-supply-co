@@ -1,0 +1,36 @@
+$kind: http-request
+description: |-
+  BAT-003 (Cowl Display Bust) has only 2 units in stock. This returns 202 like any order; run Get Order to see status FAILED with an OUT_OF_STOCK failure_reason.
+  The armory's 409 becomes a non-retryable ApplicationError, so the order fails at once instead of retrying.
+url: "{{order_url}}/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "customer_id": "selina-kyle",
+      "items": [
+        { "sku": "BAT-003", "quantity": 99 }
+      ],
+      "shipping_address": {
+        "name": "Selina Kyle",
+        "street": "1 Rooftop Way",
+        "city": "Gotham",
+        "country": "US"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 202) {
+          const body = pm.response.json();
+          pm.collectionVariables.set('order_id', body.order_id);
+          // Clear IDs from any previous order; Get Order fills them in for this one.
+          ['reservation_id', 'charge_id', 'total_cents', 'idempotency_key']
+              .forEach((k) => pm.collectionVariables.set(k, ''));
+          console.log('Saved order_id =', body.order_id);
+      }
+    language: text/javascript
+order: 3000

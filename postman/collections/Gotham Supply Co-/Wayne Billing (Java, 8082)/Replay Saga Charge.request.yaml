@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Sends the same Idempotency-Key and amount the saga used to charge this order. Billing returns the saga's existing charge (200, same charge_id) instead of charging again.
+  Run Get Order first. Until the order has been charged, idempotency_key is empty and billing rejects this with 400 MISSING_IDEMPOTENCY_KEY.
+url: "{{billing_url}}/charges"
+method: POST
+headers:
+  Content-Type: application/json
+  Idempotency-Key: "{{idempotency_key}}"
+body:
+  type: text
+  content: |-
+    {
+      "order_id": "{{order_id}}",
+      "customer_id": "selina-kyle",
+      "amount_cents": {{total_cents}},
+      "currency": "USD"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 200) {
+          const charge = pm.response.json();
+          pm.collectionVariables.set('charge_id', charge.charge_id);
+          console.log('Replayed charge', charge.charge_id, charge.status);
+      }
+    language: text/javascript
+order: 2000

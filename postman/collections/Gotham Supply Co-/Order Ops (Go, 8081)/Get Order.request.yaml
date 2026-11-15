@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Reads the order from orders.db. Re-run until status is COMPLETED (usually about 2 seconds) or FAILED.
+  A 404 right after Create Order is normal: the row appears once the workflow records its first status, a moment after the 202.
+  The script saves reservation_id, charge_id and total_cents. Once the order has been charged, it also sets idempotency_key to the key the saga used (order-<order_id>), which the Billing replay requests need.
+url: "{{order_url}}/orders/{{order_id}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 200) {
+          const o = pm.response.json();
+          pm.collectionVariables.set('reservation_id', o.reservation_id || '');
+          pm.collectionVariables.set('charge_id', o.charge_id || '');
+          pm.collectionVariables.set('total_cents', o.total_cents || '');
+          // Only set the saga's Idempotency-Key once the saga has charged, so the
+          // Billing replay requests can never run ahead of the saga.
+          pm.collectionVariables.set('idempotency_key', o.charge_id ? 'order-' + o.order_id : '');
+          console.log(`Order ${o.order_id}: ${o.status}`);
+      }
+    language: text/javascript
+order: 4000

@@ -1,5 +1,7 @@
 $kind: http-request
-description: Idempotent on order_id — calling this twice with the same order_id returns the same reservation rather than double-holding stock.
+description: |-
+  Replays the saga's reservation. For an order the saga already reserved, the armory returns that same reservation (status PICKED once shipped) instead of holding stock twice; the items in the body are ignored.
+  For an order with no reservation (for example the out-of-stock order), this creates a new HELD reservation that nothing will release until compensation exists (Phase 2).
 url: "{{armory_url}}/reservations"
 method: POST
 headers:

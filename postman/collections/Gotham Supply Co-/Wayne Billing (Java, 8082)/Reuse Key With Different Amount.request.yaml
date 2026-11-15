@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Same Idempotency-Key as the saga's charge, but a different amount. Expect 422 IDEMPOTENCY_KEY_REUSED: billing refuses to use one key for two different charges.
+  Run Get Order first. Until the order has been charged, idempotency_key is empty and billing rejects this with 400 MISSING_IDEMPOTENCY_KEY.
+url: "{{billing_url}}/charges"
+method: POST
+headers:
+  Content-Type: application/json
+  Idempotency-Key: "{{idempotency_key}}"
+body:
+  type: text
+  content: |-
+    {
+      "order_id": "{{order_id}}",
+      "customer_id": "selina-kyle",
+      "amount_cents": 1,
+      "currency": "USD"
+    }
+order: 2500
