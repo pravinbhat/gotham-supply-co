@@ -1,9 +1,6 @@
 # Gotham Supply Co.
 
-> [!NOTE]
-> **Fan-made, non-commercial learning project.** Not affiliated with, endorsed by, or connected to DC, Warner Bros. Discovery, or any rights holder. Batman-related names are used only as playful theming; nothing here is for sale.
-
-An order fulfillment platform for an imaginary Gotham collectibles shop. It is built as independent microservices, each with its own REST API, SQLite database, and [Temporal](https://temporal.io) worker.
+A fan-made, non-commercial order fulfillment platform for an imaginary Gotham collectibles shop. It is built as independent microservices, each with its own REST API, SQLite database, and [Temporal](https://temporal.io) worker.
 
 The goal is to learn Temporal the way it usually shows up in practice: added to services that already talk to each other over HTTP, rather than living inside a single-process demo.
 
@@ -266,4 +263,4 @@ Phase 1, the vertical slice, is complete. Next up are saga compensation, signals
 
 ---
 
-<sub>Gotham Supply Co. is an unofficial, fan-made educational project. All character and place names belong to their respective owners and are used here without any commercial intent.</sub>
+<sub>Gotham Supply Co. is an unofficial, fan-made educational project, not affiliated with or endorsed by DC or Warner Bros. Discovery. All character and place names belong to their respective owners and are used here without any commercial intent; nothing here is for sale.</sub>
