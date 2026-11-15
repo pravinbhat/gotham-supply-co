@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{armory_url}}/inventory"
+method: GET
+order: 3000

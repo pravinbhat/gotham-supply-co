@@ -1,0 +1,20 @@
+$kind: http-request
+description: Starts FulfillmentWorkflow (pick_and_pack -> create_shipping_label) and waits up to 20s for the result.
+url: "{{armory_url}}/shipments"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "order_id": "{{order_id}}",
+      "reservation_id": "{{reservation_id}}",
+      "address": {
+        "name": "Selina Kyle",
+        "street": "1 Rooftop Way",
+        "city": "Gotham",
+        "country": "US"
+      }
+    }
+order: 6000

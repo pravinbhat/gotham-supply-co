@@ -1,0 +1,24 @@
+$kind: http-request
+description: Idempotency-Key is REQUIRED (400 without it). Resend the exact same request and you get the same charge back; change amount_cents with the same key and you get 422 IDEMPOTENCY_KEY_REUSED.
+url: "{{billing_url}}/charges"
+method: POST
+headers:
+  Content-Type: application/json
+  Idempotency-Key: "{{idempotency_key}}"
+body:
+  type: text
+  content: |-
+    {
+      "order_id": "{{order_id}}",
+      "customer_id": "selina-kyle",
+      "amount_cents": 4997,
+      "currency": "USD"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 200) {
+          pm.collectionVariables.set('charge_id', pm.response.json().charge_id);
+      }
+    language: text/javascript
+order: 2000

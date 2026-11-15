@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{billing_url}}/charges"
+method: GET
+order: 3000

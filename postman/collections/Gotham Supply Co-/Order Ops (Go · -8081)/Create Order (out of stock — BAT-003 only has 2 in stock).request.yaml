@@ -1,0 +1,22 @@
+$kind: http-request
+description: Expect this one to come back FAILED with failure_reason mentioning OUT_OF_STOCK — a non-retryable ApplicationError, so it fails fast instead of retrying.
+url: "{{order_url}}/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "customer_id": "selina-kyle",
+      "items": [
+        { "sku": "BAT-003", "quantity": 99 }
+      ],
+      "shipping_address": {
+        "name": "Selina Kyle",
+        "street": "1 Rooftop Way",
+        "city": "Gotham",
+        "country": "US"
+      }
+    }
+order: 3000

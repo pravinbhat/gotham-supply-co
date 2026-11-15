@@ -1,0 +1,236 @@
+{
+  "info": {
+    "name": "Gotham Supply Co.",
+    "description": "Order fulfillment platform (learning project for Temporal as an FDE). Three services, each a real microservice + its own Temporal worker:\n\n- batcave-order-ops (Go, :8081) — OrderWorkflow saga\n- wayne-billing (Java, :8082) — ChargeWorkflow\n- batcave-armory (Python, :8083) — FulfillmentWorkflow\n\nRun **Order Ops > Create Order** first, then copy its `order_id` into the `order_id` collection variable (or just re-run it — the test script below sets it automatically) before calling the dependent requests in Billing/Armory.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "order_url", "value": "http://localhost:8081" },
+    { "key": "billing_url", "value": "http://localhost:8082" },
+    { "key": "armory_url", "value": "http://localhost:8083" },
+    { "key": "order_id", "value": "" },
+    { "key": "reservation_id", "value": "" },
+    { "key": "charge_id", "value": "" },
+    { "key": "idempotency_key", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Order Ops (Go · :8081)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{order_url}}/healthz", "host": ["{{order_url}}"], "path": ["healthz"] }
+          }
+        },
+        {
+          "name": "Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const body = pm.response.json();",
+                  "    pm.collectionVariables.set('order_id', body.order_id);",
+                  "    pm.collectionVariables.set('idempotency_key', 'order-' + body.order_id);",
+                  "    console.log('Saved order_id =', body.order_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"selina-kyle\",\n  \"items\": [\n    { \"sku\": \"BAT-001\", \"quantity\": 2 },\n    { \"sku\": \"ALF-301\", \"quantity\": 1 }\n  ],\n  \"shipping_address\": {\n    \"name\": \"Selina Kyle\",\n    \"street\": \"1 Rooftop Way\",\n    \"city\": \"Gotham\",\n    \"country\": \"US\"\n  }\n}"
+            },
+            "url": { "raw": "{{order_url}}/orders", "host": ["{{order_url}}"], "path": ["orders"] },
+            "description": "201/202 body: {order_id, workflow_id, run_id, status}. The test script auto-saves order_id for the requests below."
+          }
+        },
+        {
+          "name": "Create Order (out of stock — BAT-003 only has 2 in stock)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": \"selina-kyle\",\n  \"items\": [\n    { \"sku\": \"BAT-003\", \"quantity\": 99 }\n  ],\n  \"shipping_address\": {\n    \"name\": \"Selina Kyle\",\n    \"street\": \"1 Rooftop Way\",\n    \"city\": \"Gotham\",\n    \"country\": \"US\"\n  }\n}"
+            },
+            "url": { "raw": "{{order_url}}/orders", "host": ["{{order_url}}"], "path": ["orders"] },
+            "description": "Expect this one to come back FAILED with failure_reason mentioning OUT_OF_STOCK — a non-retryable ApplicationError, so it fails fast instead of retrying."
+          }
+        },
+        {
+          "name": "Get Order",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{order_url}}/orders/{{order_id}}",
+              "host": ["{{order_url}}"],
+              "path": ["orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{order_url}}/orders", "host": ["{{order_url}}"], "path": ["orders"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wayne Billing (Java · :8082)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{billing_url}}/healthz", "host": ["{{billing_url}}"], "path": ["healthz"] }
+          }
+        },
+        {
+          "name": "Create Charge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('charge_id', pm.response.json().charge_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{idempotency_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"customer_id\": \"selina-kyle\",\n  \"amount_cents\": 4997,\n  \"currency\": \"USD\"\n}"
+            },
+            "url": { "raw": "{{billing_url}}/charges", "host": ["{{billing_url}}"], "path": ["charges"] },
+            "description": "Idempotency-Key is REQUIRED (400 without it). Resend the exact same request and you get the same charge back; change amount_cents with the same key and you get 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        },
+        {
+          "name": "List Charges",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{billing_url}}/charges", "host": ["{{billing_url}}"], "path": ["charges"] }
+          }
+        },
+        {
+          "name": "Get Charge",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{billing_url}}/charges/{{charge_id}}",
+              "host": ["{{billing_url}}"],
+              "path": ["charges", "{{charge_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Batcave Armory (Python · :8083)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{armory_url}}/healthz", "host": ["{{armory_url}}"], "path": ["healthz"] }
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{armory_url}}/products", "host": ["{{armory_url}}"], "path": ["products"] }
+          }
+        },
+        {
+          "name": "List Inventory",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{armory_url}}/inventory", "host": ["{{armory_url}}"], "path": ["inventory"] }
+          }
+        },
+        {
+          "name": "Create Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('reservation_id', pm.response.json().reservation_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"items\": [\n    { \"sku\": \"BAT-001\", \"quantity\": 2 },\n    { \"sku\": \"ALF-301\", \"quantity\": 1 }\n  ]\n}"
+            },
+            "url": { "raw": "{{armory_url}}/reservations", "host": ["{{armory_url}}"], "path": ["reservations"] },
+            "description": "Idempotent on order_id — calling this twice with the same order_id returns the same reservation rather than double-holding stock."
+          }
+        },
+        {
+          "name": "Get Reservation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{armory_url}}/reservations/{{reservation_id}}",
+              "host": ["{{armory_url}}"],
+              "path": ["reservations", "{{reservation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Shipment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"address\": {\n    \"name\": \"Selina Kyle\",\n    \"street\": \"1 Rooftop Way\",\n    \"city\": \"Gotham\",\n    \"country\": \"US\"\n  }\n}"
+            },
+            "url": { "raw": "{{armory_url}}/shipments", "host": ["{{armory_url}}"], "path": ["shipments"] },
+            "description": "Starts FulfillmentWorkflow (pick_and_pack -> create_shipping_label) and waits up to 20s for the result."
+          }
+        },
+        {
+          "name": "Get Shipment",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{armory_url}}/shipments/{{order_id}}",
+              "host": ["{{armory_url}}"],
+              "path": ["shipments", "{{order_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

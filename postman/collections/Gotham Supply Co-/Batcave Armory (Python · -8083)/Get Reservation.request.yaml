@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{armory_url}}/reservations/{{reservation_id}}"
+method: GET
+order: 5000

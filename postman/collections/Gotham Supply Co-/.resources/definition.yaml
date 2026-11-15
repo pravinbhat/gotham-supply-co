@@ -1,0 +1,18 @@
+$kind: collection
+name: Gotham Supply Co.
+description: |-
+  Order fulfillment platform (learning project for Temporal as an FDE). Three services, each a real microservice + its own Temporal worker:
+
+  - batcave-order-ops (Go, :8081) — OrderWorkflow saga
+  - wayne-billing (Java, :8082) — ChargeWorkflow
+  - batcave-armory (Python, :8083) — FulfillmentWorkflow
+
+  Run **Order Ops > Create Order** first, then copy its `order_id` into the `order_id` collection variable (or just re-run it — the test script below sets it automatically) before calling the dependent requests in Billing/Armory.
+variables:
+  order_url: http://localhost:8081
+  billing_url: http://localhost:8082
+  armory_url: http://localhost:8083
+  order_id: ""
+  reservation_id: ""
+  charge_id: ""
+  idempotency_key: ""

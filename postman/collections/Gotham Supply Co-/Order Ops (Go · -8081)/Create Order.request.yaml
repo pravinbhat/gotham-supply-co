@@ -1,0 +1,33 @@
+$kind: http-request
+description: "201/202 body: {order_id, workflow_id, run_id, status}. The test script auto-saves order_id for the requests below."
+url: "{{order_url}}/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "customer_id": "selina-kyle",
+      "items": [
+        { "sku": "BAT-001", "quantity": 2 },
+        { "sku": "ALF-301", "quantity": 1 }
+      ],
+      "shipping_address": {
+        "name": "Selina Kyle",
+        "street": "1 Rooftop Way",
+        "city": "Gotham",
+        "country": "US"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 202) {
+          const body = pm.response.json();
+          pm.collectionVariables.set('order_id', body.order_id);
+          pm.collectionVariables.set('idempotency_key', 'order-' + body.order_id);
+          console.log('Saved order_id =', body.order_id);
+      }
+    language: text/javascript
+order: 2000

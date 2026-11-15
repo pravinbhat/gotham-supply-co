@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{billing_url}}/healthz"
+method: GET
+order: 1000
