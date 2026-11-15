@@ -120,11 +120,12 @@ make down     # stop everything
 
 | Command | What it does |
 |---|---|
+| `make` / `make help` | List all targets with a one-line description |
 | `make up` / `make down` / `make status` | Start, stop, or health-check all services via `scripts/dev.sh` |
 | `make smoke` | End-to-end happy path (`scripts/smoke.sh`) |
 | `make build` | Build all three services without starting them |
 | `make check-determinism` | Run Temporal's `workflowcheck` static analyzer on the Go workflows |
-| `make clean` | Delete local SQLite data, logs, and PID files |
+| `make clean` | Stop all services, then delete local SQLite data, logs, and PID files |
 | `scripts/dev.sh logs <service>` | Tail one service's log |
 
 ## Try it by hand
