@@ -263,4 +263,4 @@ Phase 1, the vertical slice, is complete. Next up are saga compensation, signals
 
 ---
 
-<sub>Gotham Supply Co. is an unofficial, fan-made educational project, not affiliated with or endorsed by DC or Warner Bros. Discovery. All character and place names belong to their respective owners and are used here without any commercial intent; nothing here is for sale.</sub>
+<sub>Gotham Supply Co. is an unofficial, fan-made educational project, not affiliated with or endorsed by DC or Warner Bros. Discovery. All character and place names belong to their respective owners and are used here without any commercial intent; nothing here is for sale. The code is released under the [MIT License](LICENSE), which covers this project's code only and grants no rights to any third-party characters or trademarks.</sub>
